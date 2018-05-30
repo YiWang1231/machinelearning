@@ -2,6 +2,7 @@
 __author__ = 'Yi'
 __date__ = '29/05/2018 10:10 PM'
 
+import os
 
 from numpy import *
 import operator
@@ -102,9 +103,62 @@ def classifyPerson():
     classifyResult = classfy0((inArr-minVals)/ranges, normMat, datingLabels, 3)
     print("You will probably like this person: ", resultList[classifyResult-1])
 
+"""
+手写识别系统
+"""
+
+def img2Vector(filename):
+    returnVect = zeros((1, 1024))
+    fr = open(filename)
+    for i in range(32):
+        lineStr = fr.readline()
+        for j in range(32):
+            returnVect[0, 32*i+j] = int(lineStr[j])
+    return returnVect
+
+
+"""
+测试代码
+"""
+def handwritingClassTest():
+    hwLabels = []
+    train_path = os.path.join(os.path.dirname(__file__), "digits", "trainingDigits")
+    trainingFileList = os.listdir(train_path)
+    m = len(trainingFileList)
+    trainingMat = zeros((m, 1024))
+    for i in range(m):
+        fileNameStr = trainingFileList[i]
+        fileStr = fileNameStr.split(".")[0]
+        classNumStr = int(fileStr.split('_')[0])
+        hwLabels.append(classNumStr)
+        trainingMat[i,:] = img2Vector(os.path.join(train_path, fileNameStr))
+
+    test_path = os.path.join(os.path.dirname(__file__), "digits", "testDigits")
+    testFilelist = os.listdir(test_path)
+    errorCount = 0.0
+    mTest = len(testFilelist)
+    for i in range(mTest):
+        fileNameStr = testFilelist[i]
+        fileStr = fileNameStr.split(".")[0]
+        classNumStr = int(fileStr.split("_")[0])
+        vectorUnderTest = img2Vector(os.path.join(test_path, fileNameStr))
+        classfierResult = classfy0(vectorUnderTest, trainingMat, hwLabels, 3)
+        print("the classifer came back with: %d, the real answer is: %d" % (classfierResult, classNumStr))
+
+        if classfierResult != classNumStr:
+            errorCount += 1.0
+    print("\nthe total error number is: %d" % errorCount)
+    print("\nthe total rate is: %f" % (errorCount/(float(mTest))))
+
+
+
 
 if __name__ == "__main__":
-    classifyPerson()
+    handwritingClassTest()
+    # path = os.path.join(os.path.dirname(__file__), "digits", "testDigits", "0_13.txt")
+    # testVector = img2Vector(path)
+    # print(testVector[0, 0:32])
+    # classifyPerson()
     # _rebuild()
     # group, labels = createDataSet()
     # datingClassTest()
